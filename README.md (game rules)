@@ -1,0 +1,10 @@
+RULES:
+1. There are three hazards: A bottomless pit, a colony of four bats, and a wumpus.
+	a. When in a room next to the pit, you will feel a breeze.
+	b. When in a room next to the wumpus, you will smell its rancid stench.
+	c. When in a room next to a bat, you will hear its shrieks.
+	d. If you walk into a room with a bat, it will first lift you up and drop you in a random empty location, then move to another empty room itself.
+2. The wumpus cannot be lifted by the bats and cannot be killed by the pit.
+3. You are able to move or shoot, but only into one of the three rooms that are adjacent to you at any point in time. 
+4. You are armed with five arrows at the start of the game; if you run out of arrows and the wumpus is still alive, it is game over for you. 
+5. Firing an arrow close enough to the wumpus and missing it may cause it to move to one of its adjacent rooms; it is possible that it will move to your current location and kill you.

@@ -1,0 +1,13 @@
+Removed debugging notifications
+Updated error messages to be precise: 
+	specifies if user enters text when int was expected and prompts to re-enter (note, they are taken to re-enter the room now, and no longer have the choice to re-enter move or shoot)
+	specifies if user enters a room that is not adjacent and prompts to re-enter (note, they are taken to re-enter the room now, and no longer have the choice to re-enter move or shoot)
+	The same was done for arrows as well
+	specifies if user does not enter "move" or "shoot" at the beginning, and allows them to re-enter their 	choice
+
+
+Report wise:
+	Formatted report with font, indentation, spelling, and chapters
+	Completed testing section with updated error messages
+	Completed UML diagram
+	Exported as PDF
