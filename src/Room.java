@@ -1,10 +1,13 @@
 import java.util.*;
 
+
 public class Room {
     private int roomNumber;
     private int roomA, roomB, roomC;
     private boolean wumpus, pit, bat;
     private boolean wumpusPresence, pitPresence, batPresence;
+    private boolean hearingLoss, smellLoss;
+    private boolean arrow;
 
     // Constructor
     public Room(int roomNumber, int roomA, int roomB, int roomC) {
@@ -26,7 +29,38 @@ public class Room {
     public boolean getPitR() {return this.pit;}
     public boolean getBatR() {return this.bat;}
 
-    public boolean isEmpty() {return (!this.wumpus && !this.pit && !this.bat);}
+    // Setter and getter methods for hearing and smell loss effects
+    public void setHearingLoss(boolean setter) {this.hearingLoss = setter;}
+    public void setSmellLoss(boolean setter) {this.smellLoss = setter;}
+    public boolean getHearingLoss() {return this.hearingLoss;}
+    public boolean getSmellLoss() {return this.smellLoss;}
+
+    // Setter and getter methods for arrow in room
+    public void setArrow(boolean setter) {this.arrow = true;}
+    public boolean getArrow() {return this.arrow;}
+
+
+    // Method to spawn arrow in random empty room
+    public static Map<Integer, Room> placeArrow(Map<Integer, Room> rooms) {
+        Random randomArrowRoom = new Random();
+        boolean placeableRoom = false;
+        int arrowRoom = 0;
+        while (!placeableRoom) {
+            arrowRoom = randomArrowRoom.nextInt(20) + 1;
+            if (rooms.get(arrowRoom).isEmpty()) placeableRoom = true;
+        }
+        rooms.get(arrowRoom).setArrow(true);
+        return rooms;
+    }
+
+
+    // Method to check if the room is empty (ie. free of any hazards)
+    public boolean isEmpty() {
+        return (!this.wumpus && !this.pit && !this.bat && !this.hearingLoss && !this.smellLoss);
+    }
+    public boolean isEmptyPlus() {
+        return (isEmpty() && !this.batPresence && !this.pitPresence && !this.wumpusPresence);
+    }
 
     // Getter methods for presence of hazards
     public boolean getWumpusPresence() {return this.wumpusPresence;}
@@ -43,10 +77,34 @@ public class Room {
             this.bat = false;
         }
     }
+
     // Methods to set the presence of hazards in the room
     public void setWumpusPresence(boolean setter) {this.wumpusPresence = setter;}
     public void setPitPresence(boolean setter) {this.pitPresence = setter;}
     public void setBatPresence(boolean setter) {this.batPresence = setter;}
+
+
+    // Method to set hearing/smell loss effects
+    public static Map<Integer, Room> setEffects(Map<Integer, Room> rooms) {
+        Random randomRoom = new Random();
+        int chosenRoom1 = 0; // Hearing loss room
+        int chosenRoom2 = 0; // Smell loss room
+        boolean roomIsEmpty = false;
+        while (!roomIsEmpty) {
+            chosenRoom1 = randomRoom.nextInt(20) + 1;
+            if (rooms.get(chosenRoom1).isEmptyPlus()) {roomIsEmpty = true;}
+        }
+        rooms.get(chosenRoom1).setHearingLoss(true);
+        roomIsEmpty = false;
+        while (!roomIsEmpty) {
+            chosenRoom2 = randomRoom.nextInt(20) + 1;
+            if (rooms.get(chosenRoom2).isEmptyPlus()) {roomIsEmpty = true;}
+        }
+        rooms.get(chosenRoom2).setSmellLoss(true);
+
+        return rooms;
+    }
+
 
     // Checks what is in the room after the player moves into it
     public static boolean movementStatus(Map<Integer, Room> rooms, Bat[] bats, Room room, int choice) {
@@ -58,7 +116,7 @@ public class Room {
         } else if (room.getPitR()) {System.out.println("You stumbled down a pit! Your crushed bones reverberate around the caves. Game over."); 
             return true;
 
-        } else if (room.bat) {
+        } else if (room.getBatR()) {
             int newRoom = bats[0].batMovePlayer(rooms, room); // The object bat[0] is simply used to access the batMovePlayer() method in the Bat class
             System.out.println("Despite the laws of physics, a bat is able to pick you up and place you in room " + newRoom + ".");
 
@@ -68,34 +126,82 @@ public class Room {
             roomPresence(rooms.get(newRoom), newRoom);
             return false;
 
+        } else if (room.getHearingLoss() && !Player.getHearingLoss()) {
+            System.out.println("Oh no! You have been affected by the HEARING LOSS effect! You can no longer hear bats!");
+            Player.setHearingLoss(true);
+            rooms.get(choice).setHearingLoss(false);
+            boolean newHearingLoss = false;
+            int newRoom = 0;
+            Random random = new Random();
+            while (!newHearingLoss) {
+                newRoom = random.nextInt(20) + 1;
+                if (rooms.get(newRoom).isEmptyPlus()) {newHearingLoss = true;}
+            }
+            rooms.get(newRoom).setHearingLoss(true);
+            roomPresence(room, choice);
+            return false;
+
+        } else if (room.getSmellLoss() && !Player.getSmellLoss()) {
+            System.out.println("Oh no! You have been affected by the SMELL LOSS effect! You can no longer smell the Wumpi!");
+            Player.setSmellLoss(true);
+            rooms.get(choice).setSmellLoss(false);
+            boolean newHearingLoss = false;
+            int newRoom = 0;
+            Random random = new Random();
+            while (!newHearingLoss) {
+                newRoom = random.nextInt(20) + 1;
+                if (rooms.get(newRoom).isEmptyPlus()) {newHearingLoss = true;}
+            }
+            rooms.get(newRoom).setSmellLoss(true);
+            roomPresence(room, choice);
+            return false;
+
         } else {
             roomPresence(room, choice);
             return false;
+
         }
     }
     
+
+    // Check the room for the presence of any hazards (ie. if any hazards are in the adjacent rooms)
     public static void roomPresence(Room room, int choice) {
         if (room.getWumpusPresence()) {
-            System.out.println("You smell the fabled wretched smell of the Wumpus, it is rancid, and it is unbearable."); 
-            Player.movePlayer(choice);
+            if (!Player.getSmellLoss()) {
+                System.out.println("You smell the fabled wretched smell of the Wumpus, it is rancid, and it is unbearable."); 
+            } else {
+                System.out.println("The room is empty.");
+            }
+            
         }
         
         if (room.getPitPresence()) {
             System.out.println("A cold breeze envelops you."); 
-            Player.movePlayer(choice);
         }
 
         if (room.getBatPresence()) {
-            System.out.println("Shrieks envelop the cave."); 
-            Player.movePlayer(choice);
+            if (!Player.getHearingLoss()) {
+                System.out.println("Shrieks envelop the cave."); 
+            } else {
+                System.out.println("The room is empty.");
+            }
         }
 
-        if (!room.batPresence && !room.pitPresence && !room.wumpusPresence) {
+        if (!room.getBatPresence() && !room.getPitPresence() && !room.getWumpusPresence()) {
             System.out.println("The room is empty.");
-            Player.movePlayer(choice); 
         }
+
+        if (room.getArrow()) {
+            System.out.println("You found an arrow!");
+            Player.addArrow();
+            room.setArrow(false);
+        }
+
+        Player.movePlayer(choice);
     }
 
+
+    // Build the cave system using a HashMap
     public static Map<Integer, Room> roomAssignment() {
         Map <Integer, Room> rooms = new HashMap<>();
         Room roomOne = new Room(1, 5, 8, 2); rooms.put(1, roomOne);
