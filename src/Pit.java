@@ -14,18 +14,18 @@ public class Pit {
         boolean emptyRoom = false;
         while (emptyRoom == false) {
             chosenRoom = random.nextInt(20) + 1;
-            if (rooms.get(chosenRoom).isEmpty()) {emptyRoom = true;}
+            if (rooms.get(chosenRoom).isEmptyPhysically()) {emptyRoom = true;}
         }
 
         Pit.setPitPos(chosenRoom); // Set pit's room to the randomly selected room
-        rooms.get(chosenRoom).setPit();
+        rooms.get(chosenRoom).setPitOccupation();
         return rooms;
     }
 
-    public static Map<Integer, Room> pitPresence(Map<Integer, Room> rooms, int pos) {
-        rooms.get(rooms.get(pos).getRoomA()).setPitPresence(true);
-        rooms.get(rooms.get(pos).getRoomB()).setPitPresence(true); 
-        rooms.get(rooms.get(pos).getRoomC()).setPitPresence(true); 
+    public static Map<Integer, Room> pitPresence(Map<Integer, Room> rooms) {
+        rooms.get(rooms.get(Pit.pos).getRoomA()).setPitPresence(true);
+        rooms.get(rooms.get(Pit.pos).getRoomB()).setPitPresence(true); 
+        rooms.get(rooms.get(Pit.pos).getRoomC()).setPitPresence(true); 
         return rooms;
     }
 }

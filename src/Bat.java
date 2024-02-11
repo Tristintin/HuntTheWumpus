@@ -14,7 +14,7 @@ public class Bat {
 
         while (emptyRoom == false) {
             chosenRoom = random.nextInt(20) + 1;
-            if (rooms.get(chosenRoom).isEmpty()) {emptyRoom = true;}
+            if (rooms.get(chosenRoom).isEmptyPhysically()) {emptyRoom = true;}
         }
 
         this.pos = chosenRoom;
@@ -34,12 +34,12 @@ public class Bat {
 
         while (emptyRoom == false) {
             chosenRoom = random.nextInt(20) + 1;
-            if (rooms.get(chosenRoom).isEmpty()) emptyRoom = true;
+            if (rooms.get(chosenRoom).isEmptyPhysically()) emptyRoom = true;
         }
 
-        rooms.get(currentPos).setBat(this); 
+        rooms.get(currentPos).setBatOccupation(this); 
         this.pos = chosenRoom;
-        rooms.get(this.pos).setBat(this);
+        rooms.get(this.pos).setBatOccupation(this);
         
         rooms = this.batPresence(rooms);
         
@@ -52,9 +52,9 @@ public class Bat {
         while (emptyRoom == false) {
             int newPlayerPos = random.nextInt(20) + 1;
             Player.setPos(newPlayerPos);
-            if (rooms.get(Player.getPos()).isEmpty()) emptyRoom = true;
+            if (rooms.get(Player.getPlayerPos()).isEmptyPhysically()) emptyRoom = true;
         }
-        return Player.getPos();
+        return Player.getPlayerPos();
     }
 
     // Method to set the bat presence of rooms that a adjacent to one containing a bat to true

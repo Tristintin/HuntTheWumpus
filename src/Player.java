@@ -8,12 +8,20 @@ public class Player {
     private static int arrows = 5;
 
     // Setter and getter methods for Player position and arrow count
-    public static int getPos() {return pos;}
+    public static int getPlayerPos() {return pos;}
     public static void setPos(int pos) {Player.pos = pos;}
     public static int getArrow() {return arrows;}
     public static void addArrow() {Player.arrows++;}
 
     private static boolean hearingLoss, smellLoss;
+    private static int hearingLossMoveTimer = 3; // This count decrements once the player has hearing loss, and the hearing loss effect is lost after it reaches 0, then it reset to 3 for the next time the player gets it
+    private static int smellLossMoveTimer = 3;   // same proccess applies here
+    public static int getHearingLossMoveTimer() {return hearingLossMoveTimer;}
+    public static int getSmellLossMoveTimer() {return smellLossMoveTimer;}
+    public static void decreaseHearingLossMoveTimer() {hearingLossMoveTimer -= 1;}
+    public static void decreaseSmellLossMoveTimer() {smellLossMoveTimer -= 1;}
+    public static void resetHearingLossMoveTimer() {hearingLossMoveTimer = 3;}
+    public static void resetSmellLossMoveTimer() {smellLossMoveTimer = 3;}
 
     // Setter and getter methods for hearingLoss and smellLoss
     public static void setHearingLoss(boolean setter) {hearingLoss = setter;}
@@ -27,7 +35,7 @@ public class Player {
         boolean emptyRoom = false;
         while (emptyRoom == false) {
             Player.pos = random.nextInt(20) + 1;
-            if (rooms.get(Player.pos).isEmpty()) {emptyRoom = true;}
+            if (rooms.get(Player.pos).isEmptyPhysically()) {emptyRoom = true;}
         }
         return rooms;
     }
@@ -39,63 +47,48 @@ public class Player {
     public static boolean verifyMovement(Room room, int enteredRoom) {
         return ((room.getRoomA() == enteredRoom) || (room.getRoomB()  == enteredRoom) || (room.getRoomC() == enteredRoom));}
     
-    // Method to check where the arrow lands after the player shoots it    
+
     public static boolean shootSomething(Map<Integer, Room> rooms, Bat[] bats, Room room) {
 
-        if (room.getWumpusR()) { // If the Wumpus is in the selected room, it is game over immediately
-            System.out.println("With just one arrow drawn, slay you a beast that has bested innumerous great hunters. You win!"); 
-            return true;
+        if (room.getWumpusOccupation()) { 
+           if (Wumpus.getWumpusHealth() == 2) {
+                System.out.println("As the arrow pierces the Wumpus and leaves him close to death, he roars and scurries away to a nearby room");
+                Wumpus.lowerWumpusHealth();
+                Wumpus.moveWumpus(rooms);
+                Player.arrows -= 1;
+
+                return Room.roomStatus(rooms, bats, rooms.get(Player.pos), Player.pos);
+           } 
+           
+           else {
+                System.out.println("With just two arrows drawn, slay you a beast that has bested numerous great hunters. You win!"); 
+                return true;
+           }
         }
 
         // Check if room has wumpusPresence toggled to true, which will decide if the Wumpus moves
         if (rooms.get(Player.pos).getWumpusPresence()) {
             System.out.println("You missed!");
             Wumpus.moveWumpus(rooms);
+
             if (Wumpus.getWumpusPos() != Player.pos) {
-                
-                if (room.getPitR() || Player.getHearingLoss()) {
-                    System.out.println("You don't hear the arrow clink against the floor."); 
-                    arrows -= 1;
-                }
+                checkArrowResult(rooms, bats, room);
+                Player.arrows -= 1;
+                return Room.roomStatus(rooms, bats, rooms.get(Player.pos), Player.pos);
 
-                if (room.getBatR() && !Player.getHearingLoss()) {
-                    System.out.println("You hear the annoyed shrieks of a bat.");
-                    arrows -= 1;
-                }
-
-                if (room.isEmpty() && !Player.getHearingLoss()) {
-                    System.out.println("You hear the arrow clink against the floor."); 
-                    arrows -= 1;
-                }
-                
-                return Room.movementStatus(rooms, bats, rooms.get(Player.pos), Player.pos);
-
-            } else {
-
-                return Room.movementStatus(rooms, bats, rooms.get(Player.pos), Player.pos);
-            }
+            } else {return Room.roomStatus(rooms, bats, rooms.get(Player.pos), Player.pos);}
 
         } else {
-
-            if (room.getPitR() || Player.getHearingLoss()) { // For if the player shoots an arrow into the pit's room OR if the player is deaf
-                System.out.println("You don't hear the arrow clink against the floor."); 
-                arrows -= 1; 
-                return false;
-            }
-
-            if (room.getBatR() && !Player.getHearingLoss()) {
-                System.out.println("You hear the annoyed shrieks of a bat.");
-                arrows -= 1;
-                return false;
-            }
-
-            if (room.isEmpty() && !Player.getHearingLoss()) { // Normal miss 
-                System.out.println("You hear the arrow clink against the floor."); 
-                arrows -= 1; 
-                return false;
-            }
+            checkArrowResult(rooms, bats, room); // Normal miss
+            Player.arrows -= 1;
+            return Room.roomStatus(rooms, bats, rooms.get(Player.pos), Player.pos);
         }
-
-        return false;
     }        
+
+
+    public static void checkArrowResult(Map<Integer, Room> rooms, Bat[] bats, Room room) {
+        if (room.getPitOccupation() || Player.getHearingLoss())  System.out.println("You don't hear the arrow clink against the floor."); 
+        else if (room.getBatOccupation() && !Player.getHearingLoss()) System.out.println("You hear the annoyed shrieks of a bat.");
+        else if (room.isThreatEmpty() && !Player.getHearingLoss()) System.out.println("You hear the arrow clink against the floor."); 
+    }
 }

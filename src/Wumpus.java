@@ -2,10 +2,14 @@ import java.util.*;
 
 public class Wumpus {
     private static Random random = new Random();
-    private static int pos;
+    private static int pos, randomPos;
+    private static int health = 2;
 
     // Getter method for Wumpus' position
     public static int getWumpusPos() {return Wumpus.pos;}
+    public static int getWumpusHealth() {return Wumpus.health;}
+    public static void lowerWumpusHealth() {Wumpus.health--;}
+    public static void resetWumpusHealth() {Wumpus.health = 2;}
     
     // Checks for a random room and references the isEmpty() method which checks if there is no Wumpus, bat, or pit currently in the selected room
     public static Map<Integer, Room> spawnWumpus(Map<Integer, Room> rooms) {
@@ -14,7 +18,7 @@ public class Wumpus {
         
         while (emptyRoom == false) {
             chosenRoom = random.nextInt(20) + 1;
-            if (rooms.get(chosenRoom).isEmpty()) {emptyRoom = true;}
+            if (rooms.get(chosenRoom).isEmptyPhysically()) {emptyRoom = true;}
         }
 
         Wumpus.pos = chosenRoom;
@@ -29,16 +33,17 @@ public class Wumpus {
         int[] possiblePos = new int[]{currentPos, rooms.get(currentPos).getRoomA(), rooms.get(currentPos).getRoomB(), rooms.get(currentPos).getRoomC()};
 
         // Select a random room from the array of possible rooms
-        int randomPos = possiblePos[new Random().nextInt(possiblePos.length)];
+        do {randomPos = possiblePos[new Random().nextInt(possiblePos.length)];} 
+        while (randomPos == Player.getPlayerPos());
 
         // Reset Wumpus presence for the previous rooms adjacent to the Wumpus to false
         for (int position : possiblePos) {
             rooms.get(position).setWumpusPresence(false);
         }
 
-        Wumpus.pos = randomPos; // Assign the wumpus the randomly generated room based on its adjacent rooms
-        rooms.get(currentPos).setWumpus(); // Set Wumpus status in original room to false
-        rooms.get(Wumpus.pos).setWumpus(); // Set Wumpus status in the new room to true
+        Wumpus.pos = randomPos;            // Assign the wumpus the randomly generated room based on its adjacent rooms
+        rooms.get(currentPos).setWumpusOccupation(); // Set Wumpus status in original room to false
+        rooms.get(Wumpus.pos).setWumpusOccupation(); // Set Wumpus status in the new room to true
 
         rooms = wumpusPresence(rooms); // Set the Wumpus presence in the adjacent rooms of the Wumpus' new room to true
     }
